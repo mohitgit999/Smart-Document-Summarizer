@@ -29,6 +29,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      overflow-x: hidden;
     }
 
     /* ── Background Grid ── */
@@ -79,10 +80,11 @@
 
     h1 {
       font-family: 'Syne', sans-serif;
-      font-size: clamp(2rem, 5vw, 3.4rem);
+      font-size: clamp(1.8rem, 8vw, 3.4rem);
       font-weight: 800;
       line-height: 1.12;
       letter-spacing: -.02em;
+      word-wrap: break-word;
       background: linear-gradient(135deg, #fff 30%, var(--accent) 70%, var(--accent2));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -300,15 +302,16 @@
 
     /* ── Responsive Tweaks ── */
     @media (max-width: 600px) {
-      header { padding: 40px 16px 0; }
+      header { padding: 30px 16px 0; }
       main { padding: 0 16px 40px; }
+      .subtitle { font-size: 0.9rem; margin-bottom: 24px; }
       .action-bar { flex-direction: column; align-items: stretch; gap: 16px; }
-      .action-left { justify-content: stretch; width: 100%; flex-wrap: wrap; }
-      .action-left > * { flex: 1; text-align: center; justify-content: center; }
+      .action-left { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      .action-left > * { text-align: center; justify-content: center; }
       .btn-summarize { justify-content: center; width: 100%; }
       .toolbar { flex-direction: column; align-items: stretch; gap: 16px; text-align: center; }
-      .style-tabs { flex-wrap: wrap; }
-      .style-tab { flex: 1; text-align: center; }
+      .style-tabs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; width: 100%; }
+      .style-tab { text-align: center; padding: 8px 4px; font-size: 11px; }
       .output-header { flex-direction: column; align-items: flex-start; gap: 10px; }
     }
   </style>
@@ -332,7 +335,7 @@
       <div class="style-tabs">
         <button class="style-tab active" data-style="concise">Concise</button>
         <button class="style-tab" data-style="detailed">Detailed</button>
-        <button class="style-tab" data-style="bullet">Bullet Points</button>
+        <button class="style-tab" data-style="bullet">Bullets</button>
       </div>
     </div>
 
