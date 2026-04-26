@@ -1,0 +1,15 @@
+# Python Virtual Environment
+venv/
+env/
+
+# Environment Variables (CRITICAL: Do not upload API keys!)
+.env
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# OS generated files
+.DS_Store
+Thumbs.db

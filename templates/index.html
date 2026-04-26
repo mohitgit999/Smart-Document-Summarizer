@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SmartSummarizer — AI Document Assistant</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #0a0a0f;
+      --surface:    #13131c;
+      --border:     #1e1e2e;
+      --accent:     #7c6af7;
+      --accent2:    #e66bff;
+      --text:       #e8e8f0;
+      --muted:      #6b6b80;
+      --success:    #4ade80;
+      --error:      #f87171;
+      --radius:     14px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── Background Grid ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(124,106,247,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124,106,247,.04) 1px, transparent 1px);
+      background-size: 44px 44px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Glow blobs ── */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: .18;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .blob-1 { width: 500px; height: 500px; background: var(--accent); top: -150px; left: -150px; }
+    .blob-2 { width: 400px; height: 400px; background: var(--accent2); bottom: -100px; right: -100px; }
+
+    /* ── Header ── */
+    header {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 860px;
+      padding: 52px 24px 0;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(124,106,247,.12);
+      border: 1px solid rgba(124,106,247,.3);
+      border-radius: 99px;
+      padding: 5px 14px;
+      font-size: 12px; font-weight: 500;
+      color: #b0a6ff;
+      letter-spacing: .04em;
+      margin-bottom: 20px;
+    }
+    .badge-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      font-weight: 800;
+      line-height: 1.12;
+      letter-spacing: -.02em;
+      background: linear-gradient(135deg, #fff 30%, var(--accent) 70%, var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 14px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 1rem;
+      font-weight: 300;
+      max-width: 500px;
+      margin: 0 auto 40px;
+      line-height: 1.6;
+    }
+
+    /* ── Main Card ── */
+    main {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 860px;
+      padding: 0 24px 64px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,.02);
+    }
+
+    .toolbar-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 12px; font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .style-tabs { display: flex; gap: 6px; }
+    .style-tab {
+      padding: 5px 14px;
+      border-radius: 99px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px; font-weight: 500;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .style-tab:hover { border-color: var(--accent); color: var(--text); }
+    .style-tab.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* ── Textarea ── */
+    .input-wrap { position: relative; }
+    textarea {
+      width: 100%;
+      min-height: 200px;
+      padding: 22px;
+      background: transparent;
+      border: none;
+      outline: none;
+      resize: vertical;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--text);
+    }
+    textarea::placeholder { color: var(--muted); }
+
+    .char-count {
+      position: absolute; bottom: 10px; right: 16px;
+      font-size: 11px; color: var(--muted);
+    }
+    .char-count.warn { color: var(--error); }
+
+    /* ── Action Bar ── */
+    .action-bar {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+      background: rgba(255,255,255,.02);
+    }
+
+    .btn-clear {
+      background: none; border: 1px solid var(--border);
+      color: var(--muted); border-radius: 10px;
+      padding: 10px 18px; font-family: 'DM Sans', sans-serif;
+      font-size: 13px; cursor: pointer;
+      transition: all .2s;
+    }
+    .btn-clear:hover { border-color: var(--muted); color: var(--text); }
+
+    .btn-summarize {
+      display: flex; align-items: center; gap: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none; border-radius: 10px;
+      color: #fff; padding: 11px 24px;
+      font-family: 'Syne', sans-serif;
+      font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: opacity .2s, transform .15s;
+    }
+    .btn-summarize:hover { opacity: .9; transform: translateY(-1px); }
+    .btn-summarize:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+    .btn-summarize svg { transition: transform .3s; }
+    .btn-summarize:not(:disabled):hover svg { transform: translateX(3px); }
+
+    /* ── Spinner ── */
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Output Section ── */
+    .output-section {
+      margin-top: 20px;
+      opacity: 0; transform: translateY(12px);
+      transition: opacity .4s, transform .4s;
+      pointer-events: none;
+    }
+    .output-section.visible {
+      opacity: 1; transform: none;
+      pointer-events: all;
+    }
+
+    .output-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .output-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 13px; font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .stats {
+      display: flex; gap: 10px; flex-wrap: wrap;
+    }
+    .stat-pill {
+      background: rgba(124,106,247,.1);
+      border: 1px solid rgba(124,106,247,.2);
+      border-radius: 99px;
+      padding: 3px 10px;
+      font-size: 11px; color: #b0a6ff;
+    }
+
+    .output-card {
+      background: var(--surface);
+      border: 1px solid rgba(124,106,247,.2);
+      border-radius: var(--radius);
+      padding: 22px;
+      line-height: 1.8;
+      font-size: 15px;
+      color: var(--text);
+      position: relative;
+    }
+
+    /* bullet points from API */
+    .output-card ul { padding-left: 20px; }
+    .output-card li { margin-bottom: 6px; }
+
+    .copy-btn {
+      position: absolute; top: 12px; right: 12px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      padding: 5px 10px; font-size: 11px;
+      cursor: pointer; transition: all .2s;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .copy-btn:hover { background: rgba(255,255,255,.1); color: var(--text); }
+
+    /* ── Error Message ── */
+    .error-msg {
+      display: none;
+      background: rgba(248,113,113,.1);
+      border: 1px solid rgba(248,113,113,.3);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      font-size: 14px;
+      color: var(--error);
+      margin-top: 16px;
+    }
+    .error-msg.visible { display: block; }
+
+    /* ── Footer ── */
+    footer {
+      position: relative; z-index: 1;
+      color: var(--muted);
+      font-size: 12px;
+      padding: 0 24px 32px;
+      text-align: center;
+    }
+
+    /* ── Responsive Tweaks ── */
+    @media (max-width: 600px) {
+      header { padding: 40px 16px 0; }
+      main { padding: 0 16px 40px; }
+      .action-bar { flex-direction: column; align-items: stretch; gap: 16px; }
+      .action-left { justify-content: stretch; width: 100%; flex-wrap: wrap; }
+      .action-left > * { flex: 1; text-align: center; justify-content: center; }
+      .btn-summarize { justify-content: center; width: 100%; }
+      .toolbar { flex-direction: column; align-items: stretch; gap: 16px; text-align: center; }
+      .style-tabs { flex-wrap: wrap; }
+      .style-tab { flex: 1; text-align: center; }
+      .output-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+
+<header>
+  <div class="badge"><span class="badge-dot"></span> Powered by OpenAI GPT</div>
+  <h1>SmartSummarizer</h1>
+  <p class="subtitle">Paste any long document and get an accurate, concise summary in seconds using AI.</p>
+</header>
+
+<main>
+  <!-- ── Input Card ── -->
+  <div class="card">
+    <div class="toolbar">
+      <span class="toolbar-label">Summary Style</span>
+      <div class="style-tabs">
+        <button class="style-tab active" data-style="concise">Concise</button>
+        <button class="style-tab" data-style="detailed">Detailed</button>
+        <button class="style-tab" data-style="bullet">Bullet Points</button>
+      </div>
+    </div>
+
+    <div class="input-wrap">
+      <textarea id="inputText" placeholder="Paste your document, article, or any long text here...&#10;&#10;Minimum 50 characters · Maximum 15,000 characters"></textarea>
+      <span class="char-count" id="charCount">0 / 15,000</span>
+    </div>
+
+    <div class="action-bar">
+      <div class="action-left" style="display: flex; gap: 12px; align-items: center;">
+        <button class="btn-clear" id="clearBtn">Clear</button>
+        <label for="fileInput" class="btn-clear" style="cursor: pointer; display: flex; align-items: center; gap: 6px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+          </svg>
+          <span id="fileNameDisplay">Upload</span>
+        </label>
+        <input type="file" id="fileInput" accept=".txt,.pdf,.docx" style="display: none;" />
+      </div>
+      <button class="btn-summarize" id="summarizeBtn">
+        <span id="btnText">Summarize</span>
+        <div class="spinner" id="spinner"></div>
+        <svg id="btnArrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Error ── -->
+  <div class="error-msg" id="errorMsg"></div>
+
+  <!-- ── Output ── -->
+  <div class="output-section" id="outputSection">
+    <div class="output-header">
+      <span class="output-title">✦ Summary</span>
+      <div class="stats" id="statsRow"></div>
+    </div>
+    <div class="output-card" id="outputCard">
+      <button class="copy-btn" id="copyBtn">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        </svg>
+        Copy
+      </button>
+      <div id="summaryText"></div>
+    </div>
+  </div>
+</main>
+
+<footer>SmartSummarizer · Built with Flask + OpenAI · 2025</footer>
+
+<script>
+  const textarea    = document.getElementById('inputText');
+  const charCount   = document.getElementById('charCount');
+  const clearBtn    = document.getElementById('clearBtn');
+  const summarizeBtn= document.getElementById('summarizeBtn');
+  const btnText     = document.getElementById('btnText');
+  const spinner     = document.getElementById('spinner');
+  const btnArrow    = document.getElementById('btnArrow');
+  const outputSection=document.getElementById('outputSection');
+  const outputCard  = document.getElementById('outputCard');
+  const summaryText = document.getElementById('summaryText');
+  const statsRow    = document.getElementById('statsRow');
+  const errorMsg    = document.getElementById('errorMsg');
+  const copyBtn     = document.getElementById('copyBtn');
+  const styleTabs   = document.querySelectorAll('.style-tab');
+  const fileInput   = document.getElementById('fileInput');
+  const fileNameDisplay = document.getElementById('fileNameDisplay');
+
+  let selectedStyle = 'concise';
+
+  // ── Style tabs ──
+  styleTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      styleTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      selectedStyle = tab.dataset.style;
+    });
+  });
+
+  // ── Char counter ──
+  textarea.addEventListener('input', () => {
+    const len = textarea.value.length;
+    charCount.textContent = `${len.toLocaleString()} / 15,000`;
+    charCount.classList.toggle('warn', len > 14000);
+  });
+
+  // ── File Input ──
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length > 0) {
+      fileNameDisplay.textContent = fileInput.files[0].name;
+    } else {
+      fileNameDisplay.textContent = 'Upload';
+    }
+  });
+
+  // ── Clear ──
+  clearBtn.addEventListener('click', () => {
+    textarea.value = '';
+    fileInput.value = '';
+    fileNameDisplay.textContent = 'Upload';
+    charCount.textContent = '0 / 15,000';
+    outputSection.classList.remove('visible');
+    errorMsg.classList.remove('visible');
+  });
+
+  // ── Summarize ──
+  summarizeBtn.addEventListener('click', async () => {
+    const text = textarea.value.trim();
+    const file = fileInput.files.length > 0 ? fileInput.files[0] : null;
+    errorMsg.classList.remove('visible');
+    outputSection.classList.remove('visible');
+
+    if (!text && !file) { showError('Please paste some text or upload a file first!'); return; }
+
+    setLoading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('text', text);
+      formData.append('style', selectedStyle);
+      if (file) {
+        formData.append('file', file);
+      }
+
+      const res = await fetch('/summarize', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        showError(data.error || 'Something went wrong. Please try again.');
+        return;
+      }
+
+      // Render summary
+      if (selectedStyle === 'bullet') {
+        const lines = data.summary.split('\n').filter(l => l.trim());
+        summaryText.innerHTML = '<ul>' + lines.map(l =>
+          `<li>${l.replace(/^[-•*]\s*/, '')}</li>`
+        ).join('') + '</ul>';
+      } else {
+        summaryText.textContent = data.summary;
+      }
+
+      // Stats
+      const s = data.stats;
+      statsRow.innerHTML = `
+        <span class="stat-pill">${s.original_words} words → ${s.summary_words} words</span>
+        <span class="stat-pill">${s.reduction_percent}% shorter</span>
+      `;
+
+      outputSection.classList.add('visible');
+      outputSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    } catch (err) {
+      showError('Network error. Is Flask running?');
+    } finally {
+      setLoading(false);
+    }
+  });
+
+  // ── Copy ──
+  copyBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(summaryText.innerText).then(() => {
+      copyBtn.textContent = '✓ Copied!';
+      setTimeout(() => {
+        copyBtn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy`;
+      }, 2000);
+    });
+  });
+
+  function setLoading(state) {
+    summarizeBtn.disabled = state;
+    btnText.textContent = state ? 'Summarizing...' : 'Summarize';
+    spinner.style.display = state ? 'block' : 'none';
+    btnArrow.style.display = state ? 'none' : 'block';
+  }
+
+  function showError(msg) {
+    errorMsg.textContent = '⚠ ' + msg;
+    errorMsg.classList.add('visible');
+  }
+</script>
+</body>
+</html>
