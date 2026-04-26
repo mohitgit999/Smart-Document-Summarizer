@@ -299,11 +299,12 @@
       text-align: center;
     }
 
-    .mobile-break { display: none; }
+    .title-word { display: inline; }
 
     /* ── Responsive Tweaks ── */
     @media (max-width: 600px) {
-      .mobile-break { display: block; }
+      .title-word { display: block; }
+      h1 { font-size: 28px !important; }
       header { padding: 30px 16px 0; }
       main { padding: 0 16px 40px; }
       .subtitle { font-size: 0.9rem; margin-bottom: 24px; }
@@ -325,7 +326,7 @@
 
 <header>
   <div class="badge"><span class="badge-dot"></span> Powered by OpenAI GPT</div>
-  <h1>Smart<br class="mobile-break">Summarizer</h1>
+  <h1><span class="title-word">Smart</span><span class="title-word">Summarizer</span></h1>
   <p class="subtitle">Paste any long document and get an accurate, concise summary in seconds using AI.</p>
 </header>
 
