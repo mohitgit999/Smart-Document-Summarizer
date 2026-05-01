@@ -19,6 +19,20 @@
       --success:    #4ade80;
       --error:      #f87171;
       --radius:     14px;
+      --grid:       rgba(124,106,247,.04);
+      --panel-bg:   rgba(255,255,255,.02);
+    }
+
+    [data-theme="light"] {
+      --bg:         #f8fafc;
+      --surface:    #ffffff;
+      --border:     #e2e8f0;
+      --accent:     #6366f1;
+      --accent2:    #d946ef;
+      --text:       #0f172a;
+      --muted:      #64748b;
+      --grid:       rgba(99,102,241,.08);
+      --panel-bg:   rgba(0,0,0,.02);
     }
 
     body {
@@ -37,8 +51,8 @@
       content: '';
       position: fixed; inset: 0;
       background-image:
-        linear-gradient(rgba(124,106,247,.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(124,106,247,.04) 1px, transparent 1px);
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
       background-size: 44px 44px;
       pointer-events: none;
       z-index: 0;
@@ -84,7 +98,7 @@
       font-weight: 800;
       line-height: 1.12;
       letter-spacing: -.02em;
-      background: linear-gradient(135deg, #fff 30%, var(--accent) 70%, var(--accent2));
+      background: linear-gradient(135deg, var(--text) 30%, var(--accent) 70%, var(--accent2));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -119,7 +133,7 @@
       display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
       padding: 16px 20px;
       border-bottom: 1px solid var(--border);
-      background: rgba(255,255,255,.02);
+      background: var(--panel-bg);
     }
 
     .toolbar-label {
@@ -177,7 +191,7 @@
       display: flex; align-items: center; justify-content: space-between; gap: 12px;
       padding: 14px 20px;
       border-top: 1px solid var(--border);
-      background: rgba(255,255,255,.02);
+      background: var(--panel-bg);
     }
 
     .btn-clear {
@@ -267,7 +281,7 @@
 
     .copy-btn {
       position: absolute; top: 12px; right: 12px;
-      background: rgba(255,255,255,.06);
+      background: var(--panel-bg);
       border: 1px solid var(--border);
       border-radius: 8px;
       color: var(--muted);
@@ -301,6 +315,25 @@
 
     .title-word { display: inline; }
 
+    /* ── Theme Toggle ── */
+    .theme-toggle {
+      position: absolute; top: 20px; right: 20px;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all .3s;
+      z-index: 100;
+    }
+    .theme-toggle:hover { transform: scale(1.1); border-color: var(--accent); }
+    .theme-toggle svg { width: 20px; height: 20px; stroke-width: 2.5; }
+    .sun-icon { display: block; }
+    .moon-icon { display: none; }
+    [data-theme="light"] .sun-icon { display: none; }
+    [data-theme="light"] .moon-icon { display: block; }
+
     /* ── Responsive Tweaks ── */
     @media (max-width: 600px) {
       .title-word { display: block; }
@@ -320,6 +353,11 @@
   </style>
 </head>
 <body>
+
+<button class="theme-toggle" id="themeToggle" title="Toggle Theme">
+  <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+  <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+</button>
 
 <div class="blob blob-1"></div>
 <div class="blob blob-2"></div>
@@ -525,6 +563,21 @@
     errorMsg.textContent = '⚠ ' + msg;
     errorMsg.classList.add('visible');
   }
+
+  // ── Theme Toggle Logic ──
+  const themeToggle = document.getElementById('themeToggle');
+  const htmlElement = document.documentElement;
+  
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  htmlElement.setAttribute('data-theme', savedTheme);
+
+  themeToggle.addEventListener('click', () => {
+    const currentTheme = htmlElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    htmlElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+  });
 </script>
 </body>
 </html>
