@@ -274,11 +274,25 @@
       background: var(--surface);
       border: 1px solid rgba(124,106,247,.2);
       border-radius: var(--radius);
-      padding: 22px;
+      padding: 24px;
       line-height: 1.8;
       font-size: 15px;
       color: var(--text);
       position: relative;
+    }
+
+    .summary-controls {
+      display: flex !important;
+      position: relative !important;
+      width: 100% !important;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      z-index: 5;
     }
 
     /* bullet points from API */
@@ -286,31 +300,32 @@
     .output-card li { margin-bottom: 6px; }
 
     .copy-btn {
-      position: absolute; top: 12px; right: 12px;
       background: var(--panel-bg);
       border: 1px solid var(--border);
       border-radius: 8px;
       color: var(--text);
-      padding: 6px 12px; font-size: 12px;
+      padding: 8px 14px; font-size: 12px;
       cursor: pointer; transition: all .2s;
       display: flex; align-items: center; gap: 6px;
       font-weight: 500;
+      white-space: nowrap;
     }
     .copy-btn:hover { background: var(--border); }
 
     /* ── Download Dropdown ── */
     .download-container {
-      position: absolute; top: 12px; right: 100px;
+      position: relative;
     }
     .download-btn {
       background: var(--panel-bg);
       border: 1px solid var(--border);
       border-radius: 8px;
       color: var(--text);
-      padding: 6px 12px; font-size: 12px;
+      padding: 8px 14px; font-size: 12px;
       cursor: pointer; transition: all .2s;
       display: flex; align-items: center; gap: 6px;
       font-weight: 500;
+      white-space: nowrap;
     }
     .download-btn:hover { background: var(--border); }
     
@@ -398,6 +413,10 @@
       .style-tabs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; width: 100%; }
       .style-tab { text-align: center; padding: 8px 4px; font-size: 11px; }
       .output-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .summary-controls { justify-content: stretch; gap: 8px; }
+      .summary-controls > * { flex: 1; }
+      .download-btn, .copy-btn { width: 100%; justify-content: center; }
+      .dropdown-menu { width: 100%; }
     }
   </style>
 </head>
@@ -465,33 +484,35 @@
       <div class="stats" id="statsRow"></div>
     </div>
     <div class="output-card" id="outputCard">
-      <div class="download-container">
-        <button class="download-btn" id="downloadBtn">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-          Download
-        </button>
-        <div class="dropdown-menu" id="downloadMenu">
-          <button class="dropdown-item" data-format="pdf">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            PDF (.pdf)
+      <div class="summary-controls">
+        <div class="download-container">
+          <button class="download-btn" id="downloadBtn">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Download
           </button>
-          <button class="dropdown-item" data-format="docx">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            Word (.docx)
-          </button>
-          <button class="dropdown-item" data-format="txt">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            Text (.txt)
-          </button>
+          <div class="dropdown-menu" id="downloadMenu">
+            <button class="dropdown-item" data-format="pdf">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              PDF (.pdf)
+            </button>
+            <button class="dropdown-item" data-format="docx">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Word (.docx)
+            </button>
+            <button class="dropdown-item" data-format="txt">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Text (.txt)
+            </button>
+          </div>
         </div>
-      </div>
 
-      <button class="copy-btn" id="copyBtn">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-        </svg>
-        Copy
-      </button>
+        <button class="copy-btn" id="copyBtn">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          Copy
+        </button>
+      </div>
       <div id="summaryText"></div>
     </div>
   </div>
