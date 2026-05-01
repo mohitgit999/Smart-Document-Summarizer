@@ -13,10 +13,14 @@ load_dotenv()
 app = Flask(__name__)
 
 # ─── Initialize OpenAI client ────────────────────────────────────────────────
-client = OpenAI(
-    api_key=os.getenv("GROQ_API_KEY", os.getenv("OPENAI_API_KEY")),
-    base_url="https://api.groq.com/openai/v1"
-)
+try:
+    client = OpenAI(
+        api_key=os.getenv("GROQ_API_KEY") or os.getenv("OPENAI_API_KEY"),
+        base_url="https://api.groq.com/openai/v1"
+    )
+except Exception as e:
+    print(f"Client init error: {e}")
+    client = None
 
 def extract_text_from_file(file):
     filename = file.filename.lower()
@@ -31,7 +35,7 @@ def extract_text_from_file(file):
                 if page_text:
                     text += page_text + "\n"
         elif filename.endswith(".docx"):
-            doc = docx.Document(file)
+            doc = Document(file)
             for para in doc.paragraphs:
                 text += para.text + "\n"
         else:
@@ -86,6 +90,9 @@ def summarize():
     system_prompt = style_prompts.get(style, style_prompts["concise"])
 
     # ── Call OpenAI API ───────────────────────────────────────────────────────
+    if not client:
+        return jsonify({"error": "OpenAI/Groq client not initialized. Check API keys."}), 500
+
     try:
         response = client.chat.completions.create(
             model="llama-3.1-8b-instant", # Updated to a supported Groq model
