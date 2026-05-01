@@ -9,18 +9,18 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:         #0a0a0f;
-      --surface:    #13131c;
-      --border:     #1e1e2e;
+      --bg:         #050508;
+      --surface:    #1a1a26;
+      --border:     #33334d;
       --accent:     #7c6af7;
       --accent2:    #e66bff;
-      --text:       #e8e8f0;
-      --muted:      #6b6b80;
+      --text:       #ffffff;
+      --muted:      #a0a0b8;
       --success:    #4ade80;
       --error:      #f87171;
       --radius:     14px;
-      --grid:       rgba(124,106,247,.04);
-      --panel-bg:   rgba(255,255,255,.02);
+      --grid:       rgba(124,106,247,.06);
+      --panel-bg:   rgba(255,255,255,.05);
     }
 
     [data-theme="light"] {
@@ -284,12 +284,55 @@
       background: var(--panel-bg);
       border: 1px solid var(--border);
       border-radius: 8px;
-      color: var(--muted);
-      padding: 5px 10px; font-size: 11px;
+      color: var(--text);
+      padding: 6px 12px; font-size: 12px;
       cursor: pointer; transition: all .2s;
-      display: flex; align-items: center; gap: 5px;
+      display: flex; align-items: center; gap: 6px;
+      font-weight: 500;
     }
-    .copy-btn:hover { background: rgba(255,255,255,.1); color: var(--text); }
+    .copy-btn:hover { background: var(--border); }
+
+    /* ── Download Dropdown ── */
+    .download-container {
+      position: absolute; top: 12px; right: 100px;
+    }
+    .download-btn {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 6px 12px; font-size: 12px;
+      cursor: pointer; transition: all .2s;
+      display: flex; align-items: center; gap: 6px;
+      font-weight: 500;
+    }
+    .download-btn:hover { background: var(--border); }
+    
+    .dropdown-menu {
+      position: absolute; top: calc(100% + 8px); right: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      width: 140px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 10;
+    }
+    .dropdown-menu.show { display: flex; }
+    
+    .dropdown-item {
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--text);
+      text-align: left;
+      background: none; border: none;
+      cursor: pointer; transition: background .2s;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .dropdown-item:hover { background: var(--border); }
+    .dropdown-item svg { color: var(--accent); }
 
     /* ── Error Message ── */
     .error-msg {
@@ -416,6 +459,27 @@
       <div class="stats" id="statsRow"></div>
     </div>
     <div class="output-card" id="outputCard">
+      <div class="download-container">
+        <button class="download-btn" id="downloadBtn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Download
+        </button>
+        <div class="dropdown-menu" id="downloadMenu">
+          <button class="dropdown-item" data-format="pdf">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            PDF (.pdf)
+          </button>
+          <button class="dropdown-item" data-format="docx">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Word (.docx)
+          </button>
+          <button class="dropdown-item" data-format="txt">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Text (.txt)
+          </button>
+        </div>
+      </div>
+
       <button class="copy-btn" id="copyBtn">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
@@ -577,6 +641,51 @@
     
     htmlElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
+  });
+
+  // ── Download Logic ──
+  const downloadBtn = document.getElementById('downloadBtn');
+  const downloadMenu= document.getElementById('downloadMenu');
+  const dropdownItems=document.querySelectorAll('.dropdown-item');
+
+  downloadBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    downloadMenu.classList.toggle('show');
+  });
+
+  window.addEventListener('click', () => {
+    downloadMenu.classList.remove('show');
+  });
+
+  dropdownItems.forEach(item => {
+    item.addEventListener('click', async () => {
+      const format = item.dataset.format;
+      const text = summaryText.innerText;
+      
+      if (!text) return;
+
+      try {
+        const res = await fetch('/download', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ summary: text, format: format })
+        });
+        
+        if (!res.ok) throw new Error('Download failed');
+        
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `summary.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+      } catch (err) {
+        showError('Could not download file.');
+      }
+    });
   });
 </script>
 </body>

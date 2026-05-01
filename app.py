@@ -1,10 +1,11 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_file
 from openai import OpenAI
 import os
 import io
 from dotenv import load_dotenv
 from pypdf import PdfReader
-import docx
+from docx import Document
+from fpdf import FPDF
 
 # ─── Load environment variables from .env file ───────────────────────────────
 load_dotenv()
@@ -112,6 +113,52 @@ def summarize():
 
     except Exception as e:
         return jsonify({"error": f"OpenAI API Error: {str(e)}"}), 500
+
+@app.route("/download", methods=["POST"])
+def download():
+    data = request.get_json()
+    summary = data.get("summary", "")
+    format_type = data.get("format", "txt")
+    
+    if not summary:
+        return jsonify({"error": "No content to download"}), 400
+
+    try:
+        if format_type == "txt":
+            buffer = io.BytesIO()
+            buffer.write(summary.encode("utf-8"))
+            buffer.seek(0)
+            return send_file(buffer, as_attachment=True, download_name="summary.txt", mimetype="text/plain")
+
+        elif format_type == "docx":
+            doc = Document()
+            doc.add_heading("AI Document Summary", 0)
+            doc.add_paragraph(summary)
+            buffer = io.BytesIO()
+            doc.save(buffer)
+            buffer.seek(0)
+            return send_file(buffer, as_attachment=True, download_name="summary.docx", mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+
+        elif format_type == "pdf":
+            pdf = FPDF()
+            pdf.add_page()
+            # fpdf2 uses standard fonts by default. Unicode might need a font file.
+            # We'll use a standard font for now.
+            pdf.set_font("helvetica", size=12)
+            pdf.multi_cell(0, 10, txt=summary)
+            
+            buffer = io.BytesIO()
+            # fpdf2 output() returns bytes if no dest is provided
+            pdf_bytes = pdf.output()
+            buffer.write(pdf_bytes)
+            buffer.seek(0)
+            return send_file(buffer, as_attachment=True, download_name="summary.pdf", mimetype="application/pdf")
+
+    except Exception as e:
+        print(f"Download error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+    return jsonify({"error": "Invalid format"}), 400
 
 
 # ─── Run the App ─────────────────────────────────────────────────────────────
