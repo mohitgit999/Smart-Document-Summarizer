@@ -95,7 +95,7 @@ def summarize():
 
     try:
         response = client.chat.completions.create(
-            model="llama3-8b-8192", # Updated to a supported Groq model
+            model="openai/gpt-oss-20b", # Groq production model (current)
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": text}
