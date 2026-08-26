@@ -449,8 +449,8 @@
     </div>
 
     <div class="input-wrap">
-      <textarea id="inputText" placeholder="Paste your document, article, or any long text here...&#10;&#10;Minimum 50 characters · Maximum 15,000 characters"></textarea>
-      <span class="char-count" id="charCount">0 / 15,000</span>
+      <textarea id="inputText" placeholder="Paste your document, article, or any long text here...&#10;&#10;Minimum 50 characters · Maximum 20,000 characters"></textarea>
+      <span class="char-count" id="charCount">0 / 20,000</span>
     </div>
 
     <div class="action-bar">
@@ -552,8 +552,8 @@
   // ── Char counter ──
   textarea.addEventListener('input', () => {
     const len = textarea.value.length;
-    charCount.textContent = `${len.toLocaleString()} / 15,000`;
-    charCount.classList.toggle('warn', len > 14000);
+    charCount.textContent = `${len.toLocaleString()} / 20,000`;
+    charCount.classList.toggle('warn', len > 19000);
   });
 
   // ── File Input ──
@@ -570,7 +570,7 @@
     textarea.value = '';
     fileInput.value = '';
     fileNameDisplay.textContent = 'Upload';
-    charCount.textContent = '0 / 15,000';
+    charCount.textContent = '0 / 20,000';
     outputSection.classList.remove('visible');
     errorMsg.classList.remove('visible');
   });

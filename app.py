@@ -77,8 +77,8 @@ def summarize():
     if len(text) < 50:
         return jsonify({"error": "Text too short. Please provide at least 50 characters."}), 400
 
-    if len(text) > 15000:
-        return jsonify({"error": "Text too long. Maximum 15,000 characters allowed."}), 400
+    if len(text) > 20000:
+        return jsonify({"error": "Text too long. Maximum 20,000 characters allowed."}), 400
 
     # ── Build Prompt Based on Style ───────────────────────────────────────────
     style_prompts = {
